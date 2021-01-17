@@ -1,0 +1,12 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: quarkus-tekton-helm
+
+resources:
+  - namespace.yaml
+  - serviceaccounts/serviceaccount.yaml
+  - rbac/rolebinding.yaml
+  - tasks/generate-build-id-task.yaml
+  - tasks/setup-dockerfile-task.yaml
+  - pipelines/pipeline.yaml

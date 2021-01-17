@@ -1,0 +1,8 @@
+metadata:
+  name: git-tekton
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi

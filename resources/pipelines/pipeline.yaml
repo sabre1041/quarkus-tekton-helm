@@ -1,0 +1,90 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: quarkus-helm-pipeline
+spec:
+  params:
+    - name: url
+      description: git URL
+      default: https://github.com/redhat-developer-helm-quickstarts/quarkus-getting-started.git
+    - name: revision
+      description: git revision
+      default: main
+    - name: context_dir
+      description: Context Directory
+      default: ""
+    - name: image_repository
+      description: "Destination image repository (example: quay.io/user/quarkus-getting-started)"
+    - name: helm_repo
+      description: Helm Repository
+      default: https://redhat-developer.github.io/redhat-helm-charts
+    - name: chart_name
+      description: Helm Chart Name
+      default: redhat_developer/quarkus
+    - name: release_name
+      description: Release Name
+      default: "quarkus-getting-started"
+    - name: overwrite_values
+      description: Overwrite Values
+      default: "build.enabled=false"
+  workspaces:
+    - name: shared-workspace
+  tasks:
+    - name: generate-build-id
+      taskRef:
+        name: generate-build-id
+    - name: git-clone
+      taskRef:
+        name: git-clone
+        kind: ClusterTask
+      params:
+        - name: url
+          value: $(params.url)
+        - name: revision
+          value: $(params.revision)
+      runAfter:
+        - "generate-build-id"
+      workspaces:
+        - name: output
+          workspace: shared-workspace
+    - name: setup-dockerfile
+      taskRef:
+        name: setup-dockerfile
+        kind: Task
+      runAfter:
+        - "git-clone"
+      params:
+        - name: context_dir
+          value: $(params.context_dir)
+      workspaces:
+        - name: workspace
+          workspace: shared-workspace
+    - name: build-image
+      taskRef:
+        kind: ClusterTask
+        name: buildah
+      params:
+        - name: IMAGE
+          value: $(params.image_repository):$(tasks.generate-build-id.results.timestamp)
+        - name: CONTEXT
+          value: "$(params.context_dir)"
+      runAfter:
+        - setup-dockerfile
+      workspaces:
+        - name: source
+          workspace: shared-workspace
+    - name: helm-install
+      taskRef:
+        name: helm-upgrade-from-repo
+        kind: ClusterTask
+      params:
+        - name: helm_repo
+          value: "$(params.helm_repo)"
+        - name: chart_name
+          value: "$(params.chart_name)"
+        - name: release_name
+          value: "$(params.release_name)"
+        - name: overwrite_values
+          value: "$(params.overwrite_values),image.tag=$(tasks.generate-build-id.results.timestamp),image.name=$(params.image_repository)"
+      runAfter:
+        - build-image

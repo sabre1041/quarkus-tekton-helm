@@ -1,0 +1,34 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: setup-dockerfile
+spec:
+  workspaces:
+    - name: workspace
+  params:
+    - name: context_dir
+      type: string
+      description: Context directory
+  steps:
+    - name: setup-dockefile
+      image: image-registry.openshift-image-registry.svc:5000/openshift/cli:latest
+      workingDir: /workspace/shared-workspace
+      args:
+        - |-
+          cat << EOF > $(workspaces.workspace.path)/$(params.context_dir)/Dockerfile
+          FROM registry.access.redhat.com/quarkus/mandrel-20-rhel8 AS builder
+          USER root
+          WORKDIR /build/
+          COPY . /build/
+          RUN ./mvnw clean package -Pnative
+
+          FROM registry.access.redhat.com/ubi8/ubi-minimal
+          WORKDIR /deployments/
+          COPY --from=builder /build/target/*-runner /deployments/application
+          RUN chmod 110 /deployments/application
+          CMD ["./application", "-Dquarkus.http.host=0.0.0.0"]
+          EOF
+
+      command:
+        - /bin/bash
+        - -c
