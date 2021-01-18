@@ -17,10 +17,24 @@ The following are required in order to execute the contents of this repository
 
 ### Install resources
 
+First, clone the repository and change into the cloned directory:
+
+```
+$ git clone https://github.com/sabre1041/quarkus-tekton-helm.git
+$ cd quarkus-tekton-helm
+
+```
+
 Execute the following command in order to create a new namespace and populate it with resources
 
 ```
 $ oc apply -k resources
+```
+
+Once the resources have been applied, change into the newly created project
+
+```
+$ oc project quarkus-tekton-helm
 ```
 
 ### Image Registry Authentication
