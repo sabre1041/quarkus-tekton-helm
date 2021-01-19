@@ -7,26 +7,33 @@ spec:
     - name: url
       description: git URL
       default: https://github.com/redhat-developer-helm-quickstarts/quarkus-getting-started.git
+      type: string
     - name: revision
       description: git revision
       default: main
+      type: string
     - name: context_dir
       description: Context Directory
       default: ""
+      type: string
     - name: image_repository
       description: "Destination image repository (example: quay.io/user/quarkus-getting-started)"
     - name: helm_repo
       description: Helm Repository
       default: https://redhat-developer.github.io/redhat-helm-charts
+      type: string
     - name: chart_name
       description: Helm Chart Name
       default: redhat_developer/quarkus
+      type: string
     - name: release_name
       description: Release Name
       default: "quarkus-getting-started"
+      type: string
     - name: overwrite_values
       description: Overwrite Values
       default: "build.enabled=false"
+      type: string
   workspaces:
     - name: shared-workspace
   tasks:
